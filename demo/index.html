@@ -7,13 +7,15 @@
 
 </head>
 <body>
-<div style="width:90%;border:1px solid #ccc;padding:10px;" id="main-div">
-    
+<div style="width:99%;float:left;border:1px solid #ccc;padding:10px;margin: auto;" id="main-div">
+
 </div>
-    
+
 <script type="text/javascript" src="../lib/mkxmlbuilder.min.js"></script>
 <script type="text/javascript">
-var mkxmlBuilder = new Mkxmlbuilder(document.getElementById('main-div'));
+var mkxmlBuilder = new Mkxmlbuilder('#main-div', {
+    showXmlPreview: false
+});
 </script>
 </body>
 </html>
