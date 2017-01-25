@@ -26,66 +26,97 @@
         console.log(event.target);
     };
     
-    var _addClickHandler = function(event, nodeItem) {
-        _renderFresh.call(this, nodeItem)
+    var _addClickHandler = function(event, parent, nodeNameInput, nodeValueInput) {
+        var howMany     = prompt('Please enter number of nodes you want') || 1;
+        var inputStyle  = window.getComputedStyle(nodeNameInput, null);
+        var width       = parseInt(inputStyle.getPropertyValue('width'),10);
+        nodeNameInput.style.width = (width*2 + (width*2 * 1/100)) + 'px';
+        nodeValueInput.style.display = 'none';
+        _renderFresh.call(this, parent, howMany);
     };
     
-     var _removeClickHandler = function(event) {
-         console.log(event.target);
+     var _removeClickHandler = function(event, parent, removableNode) {
+         var nodeNameInput = parent.querySelector('.'+this.options.inputBoxWrapperClass+' .node-name');
+         var nodeValueInput = parent.querySelector('.'+this.options.inputBoxWrapperClass+' .node-value');
+         var numberOfNodes = parent.querySelectorAll('.node-item');
+        if(numberOfNodes.length < 1)
+        {
+            var nodeNameInputStyle  = window.getComputedStyle(nodeNameInput, null);
+            var width       = parseInt(nodeNameInputStyle.getPropertyValue('width'),10);
+            nodeNameInput.style.width = (width/2 - (width/2 * 1/100)) + 'px';
+            nodeValueInput.style.display = 'inline-block';
+        }
+       
+        removableNode.remove();
      };
     
-    var _renderFresh = function(parent, data)
+    var _renderFresh = function(parent, howMany, data)
     {
-        var nodeItem            = document.createElement('div'),
-            inputBoxWrapper     = document.createElement('div'),
-            inputBox            = document.createElement('input'),
-            collapseBtnWrapper  = document.createElement('span'),
-            collapseBtn         = document.createElement('i'),
-            attrBtnWrapper      = document.createElement('span'),
-            attrBtn             = document.createElement('i'),
-            addBtnWrapper       = document.createElement('span'),
-            addBtn              = document.createElement('i'),
-            removeBtnWrapper    = document.createElement('span'),
-            removeBtn           = document.createElement('i');
+        var numberOfItems = howMany || 1;
+        for(var i = 1; i <= numberOfItems; i++)
+        {
+            var nodeItem            = document.createElement('div'),
+                inputBoxWrapper     = document.createElement('div'),
+                nodeNameInput       = document.createElement('input'),
+                nodeValueInput      = document.createElement('input'),
+                inputBox            = document.createElement('input'),
+                collapseBtnWrapper  = document.createElement('span'),
+                collapseBtn         = document.createElement('i'),
+                attrBtnWrapper      = document.createElement('span'),
+                attrBtn             = document.createElement('i'),
+                addBtnWrapper       = document.createElement('span'),
+                addBtn              = document.createElement('i'),
+                removeBtnWrapper    = document.createElement('span'),
+                removeBtn           = document.createElement('i');
+
+            nodeItem.className              = 'node-item';
+            inputBoxWrapper.className       = this.options.inputBoxWrapperClass;
+            nodeNameInput.className         = this.options.nodeNameInputClass;
+            nodeValueInput.className        = this.options.nodeValueInputClass;
+            collapseBtnWrapper.className    = 'node-icon';
+            attrBtnWrapper.className        = 'node-icon';
+            addBtnWrapper.className         = 'node-icon';
+            removeBtnWrapper.className      = 'node-icon';
+
+            collapseBtn.className   = this.options.collapseIconClass;
+            attrBtn.className       = this.options.attrIconClass;
+            addBtn.className        = this.options.addIconClass;
+            removeBtn.className     = this.options.removeIconClass;
+
+            collapseBtnWrapper.appendChild(collapseBtn);
+            attrBtnWrapper.appendChild(attrBtn);
+            addBtnWrapper.appendChild(addBtn);
+            removeBtnWrapper.appendChild(removeBtn);
+
+            inputBoxWrapper.appendChild(nodeNameInput);
+            inputBoxWrapper.appendChild(nodeValueInput);
+            inputBoxWrapper.appendChild(collapseBtnWrapper);
+            inputBoxWrapper.appendChild(attrBtnWrapper);
+            inputBoxWrapper.appendChild(addBtnWrapper);
+            inputBoxWrapper.appendChild(removeBtnWrapper);
+
+            nodeItem.appendChild(inputBoxWrapper);
+            
+
+            collapseBtnWrapper.onclick = _collapseClickHandler;
+
+            attrBtnWrapper.onclick = _attrClickHandler;
+
+            addBtnWrapper.onclick = (function(_this, parent, nodeNameInput, nodeValueInput) {
+                return function(event) {
+                    _addClickHandler.call(_this, event, parent, nodeNameInput, nodeValueInput);
+                }
+            }(this, nodeItem, nodeNameInput, nodeValueInput));
+
+            removeBtnWrapper.onclick = (function(_this, parent, nodeNameInput, nodeValueInput) {
+                return function(event) {
+                    _removeClickHandler.call(_this, event, parent, nodeNameInput, nodeValueInput);
+                }
+            }(this, parent, nodeItem));
+            
+            parent.appendChild(nodeItem);
+        }
         
-        nodeItem.className              = 'node-item';
-        inputBoxWrapper.className       = this.options.inputBoxWrapperClass;
-        inputBox.className              = this.options.inputBoxClass;
-        collapseBtnWrapper.className    = 'node-icon';
-        attrBtnWrapper.className        = 'node-icon';
-        addBtnWrapper.className         = 'node-icon';
-        removeBtnWrapper.className      = 'node-icon';
-        
-        collapseBtn.className   = this.options.collapseIconClass;
-        attrBtn.className       = this.options.attrIconClass;
-        addBtn.className        = this.options.addIconClass;
-        removeBtn.className     = this.options.removeIconClass;
-        
-        collapseBtnWrapper.appendChild(collapseBtn);
-        attrBtnWrapper.appendChild(attrBtn);
-        addBtnWrapper.appendChild(addBtn);
-        removeBtnWrapper.appendChild(removeBtn);
-        
-        inputBoxWrapper.appendChild(inputBox);
-        inputBoxWrapper.appendChild(collapseBtnWrapper);
-        inputBoxWrapper.appendChild(attrBtnWrapper);
-        inputBoxWrapper.appendChild(addBtnWrapper);
-        inputBoxWrapper.appendChild(removeBtnWrapper);
-        
-        nodeItem.appendChild(inputBoxWrapper);
-        parent.appendChild(nodeItem);
-        
-        collapseBtnWrapper.onclick = _collapseClickHandler;
-        
-        attrBtnWrapper.onclick = _attrClickHandler;
-        
-        addBtnWrapper.onclick = (function(_this) {
-            return function(event) {
-                _addClickHandler.call(_this, event, nodeItem);
-            }
-        }(this));
-        
-        removeBtnWrapper.onclick = _removeClickHandler;
     };
     
     var _renderWithData = function(parent, data)
@@ -108,7 +139,8 @@
         attrButtonClass: 'text-info',
         showXmlPreview: true,
         inputBoxWrapperClass: 'input-box',
-        inputBoxClass: 'form-control',
+        nodeNameInputClass: 'form-control node-name',
+        nodeValueInputClass: 'form-control node-value',
         collapseIconClass: 'fa fa-plus text-primary',
         attrIconClass: 'fa fa-tag text-succss',
         addIconClass: 'fa fa-plus-circle text-info',

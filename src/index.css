@@ -4,8 +4,13 @@
 .input-box {
     margin-bottom: 10px;
 }
-.input-box .form-control {
-    width: 60%;
+.input-box .node-name {
+    width: 30%;
+    margin-right: 1%;
+    display: inline-block;
+}
+.input-box .node-value {
+    width: 29%;
     display: inline-block;
 }
 .node-icon i {
