@@ -1,1 +1,1 @@
-A cool ajax with dom handling library based on jQuery and Twitter Bootstrap
+Generate your XML with javascript in easy steps.
