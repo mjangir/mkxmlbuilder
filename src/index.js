@@ -109,10 +109,10 @@
         showXmlPreview: true,
         inputBoxWrapperClass: 'input-box',
         inputBoxClass: 'form-control',
-        collapseIconClass: 'fa fa-plus',
-        attrIconClass: 'fa fa-tag',
-        addIconClass: 'fa fa-plus-circle',
-        removeIconClass: 'fa fa-trash'
+        collapseIconClass: 'fa fa-plus text-primary',
+        attrIconClass: 'fa fa-tag text-succss',
+        addIconClass: 'fa fa-plus-circle text-info',
+        removeIconClass: 'fa fa-trash text-danger'
     };
       this.data = null;
     
