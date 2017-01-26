@@ -1,297 +1,334 @@
 (function (root, factory) {
-  if (typeof exports === 'object' && typeof module !== 'undefined') {
-    module.exports = factory(
-        require('./utils'),
-        require('./attributemodal'),
-        require('./preview'),
-        require('jquery'),
-        require('./index.css'),
-        global || root);
-  } else {
-    root.Mkxmlbuilder = factory(utils, attributeModal, previewObj, root.jQuery, root.bootstrap, root.toastr, root.alert, root);
-  }
-}(typeof window !== 'undefined' ? window : this, function (utils, attributeModal, previewObject, jQuery, styles, root) {
-
-  var _classCallCheck = function (instance, Constructor)
-  {
-    if (!(instance instanceof Constructor))
-    {
-      throw new TypeError('Cannot call a class as a function');
+    
+    'use strict';
+    
+    if (typeof exports === 'object' && typeof module !== 'undefined') {
+        module.exports = factory(
+            require('./utils'),
+            require('./editor'),
+            require('./preview'),
+            require('./attributemodal'),
+            require('./index.css'),
+            global || root
+        );
+    } else {
+        root.Mkxmlbuilder = factory(utils, attributeModal, previewObj, root.jQuery, root.bootstrap, root.toastr, root.alert, root);
     }
-  };
-
-  var _createOuterWrapper = function (masterElement)
-  {
-    var resolvedElement;
-
-    if(typeof masterElement === 'string')
-    {
-        resolvedElement = document.querySelector(masterElement);
-    }
-    else if(typeof masterElement === 'object' && masterElement.tagName)
-    {
-        resolvedElement = masterElement;
-    }
-    else if(masterElement instanceof jQuery)
-    {
-        resolvedElement = masterElement.get(0);
-    }
-    else
-    {
-        throw new Error('Element must be a valid selector, jQuery object or HTMLDom Node');
-    }
-
-    if(resolvedElement)
-    {
-        this.editorWrapper = document.createElement('div');
-        this.previewWrapper = document.createElement('div');
-        this.editorWrapper.style.float = 'left';
-        this.previewWrapper.style.float = 'right';
-        if(this.options.showXmlPreview)
-        {
-            this.editorWrapper.style.width = '58%';
-            this.previewWrapper.style.width = '40%';
-            this.xmlPreview = new previewObject(this.previewWrapper)
+}(typeof window !== 'undefined' ? window : this, function (Utils, Editor, Preview, AttributeModal, Style, root) {
+    
+    'use strict';
+    
+    function classCallCheck(instance, Constructor) {
+        if (!(instance instanceof Constructor)) {
+            throw new TypeError('Cannot call a class as a function');
         }
-        else
-        {
-            this.editorWrapper.style.width = '100%';
-        }
-        resolvedElement.appendChild(this.editorWrapper);
-        resolvedElement.appendChild(this.previewWrapper);
     }
-    return resolvedElement;
-  }
-
-    var _generateUID = function guid() {
-      function s4() {
-        return Math.floor((1 + Math.random()) * 0x10000)
-          .toString(16)
-          .substring(1);
-      }
-      return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-        s4() + '-' + s4() + s4() + s4();
+    
+    function resolveBootstrapElement(element) {
+        
+        if (typeof element !== 'string' && typeof element !== 'object') {
+            throw new Error('Element must be a valid selector, jQuery object or HTMLDom Node');
+        }
+        
+        if (typeof element === 'string') {
+            element = document.querySelector(element);
+        } else if (element instanceof jQuery) {
+            element = element.get(0);
+        } else {
+            throw new Error('Element must be a valid selector, jQuery object or HTMLDom Node');
+        }
+        
+        return element;
     }
-
-    var _changeNodeNameHandler = function (event, nodeItem)
-    {
-        nodeItem.mkxmlNodeName = event.target.value;
-    };
-
-    var _changeNodeValueHandler = function (event, nodeItem)
-    {
-        nodeItem.mkxmlNodeValue = event.target.value;
-    };
-
-    var _collapseClickHandler = function (event) {
-    };
-
-    var _attrClickHandler = function(event, nodeItem) {
-        this.attributeModal.setNode(nodeItem);
-        this.attributeModal.show();
-    };
-
-    var _addClickHandler = function(event, parent, nodeNameInput, nodeValueInput) {
-        var howMany     = prompt('Please enter number of nodes you want') || 0;
-        var inputStyle  = window.getComputedStyle(nodeNameInput, null);
-        var width       = parseInt(inputStyle.getPropertyValue('width'),10);
-        if(howMany > 0) {
-            nodeNameInput.style.width = (width*2 + (width*2 * 1/100)) + 'px';
-            nodeValueInput.style.display = 'none';
-            _renderFresh.call(this, parent, howMany);
+    
+    function generateUID() {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
         }
-    };
-
-     var _removeClickHandler = function(event, parent, removableNode) {
-        removableNode.remove();
-         var nodeNameInput  = parent.querySelector('.'+this.options.inputBoxWrapperClass+' .node-name');
-         var nodeValueInput = parent.querySelector('.'+this.options.inputBoxWrapperClass+' .node-value');
-         var numberOfNodes  = parent.querySelectorAll('.node-item');
-         removableNode.remove();
-        if(numberOfNodes.length < 1)
-        {
-            var nodeNameInputStyle  = window.getComputedStyle(nodeNameInput, null);
-            var width       = parseInt(nodeNameInputStyle.getPropertyValue('width'),10);
-            nodeNameInput.style.width = (width/2 - (width/2 * 1/100)) + 'px';
-            nodeValueInput.style.display = 'inline-block';
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    }
+    
+    function prepareDomInstances() {
+        var outerWrapper,
+            editorWrapper,
+            previewWrapper;
+        
+        outerWrapper    = document.createElement('div');
+        editorWrapper   = document.createElement('div');
+        previewWrapper  = document.createElement('div');
+        
+        outerWrapper.className      = 'mkxmlbuilder-outer';
+        editorWrapper.className     = 'mkxmlbuilder-editor';
+        previewWrapper.className    = 'mkxmlbuilder-preview';
+        
+        editorWrapper.appendChild(this.editor.panelWrapper);
+        previewWrapper.appendChild(this.preview.panelWrapper);
+        
+        outerWrapper.appendChild(editorWrapper);
+        
+        if (this.options.showPreviewPanel) {
+            outerWrapper.appendChild(previewWrapper);
+        } else {
+            editorWrapper.style.width = '100%';
         }
-     };
-
-    var _renderFresh = function(parent, howMany, data)
-    {
-        var numberOfItems = howMany || 1;
-        for(var i = 1; i <= numberOfItems; i++)
-        {
-            var nodeItem            = document.createElement('div'),
-                inputBoxWrapper     = document.createElement('div'),
-                nodeNameInput       = document.createElement('input'),
-                nodeValueInput      = document.createElement('input'),
-                inputBox            = document.createElement('input'),
-                collapseBtnWrapper  = document.createElement('span'),
-                collapseBtn         = document.createElement('i'),
-                attrBtnWrapper      = document.createElement('span'),
-                attrBtn             = document.createElement('i'),
-                addBtnWrapper       = document.createElement('span'),
-                addBtn              = document.createElement('i');
-
-            nodeItem.mkxmlUniqueId          = _generateUID();
-            nodeItem.className              = 'node-item';
-            inputBoxWrapper.className       = this.options.inputBoxWrapperClass;
-            nodeNameInput.className         = this.options.nodeNameInputClass;
-            nodeValueInput.className        = this.options.nodeValueInputClass;
-            nodeNameInput.setAttribute('placeholder', 'Node Name...');
-            nodeValueInput.setAttribute('placeholder', 'Node Value...');
+        this.outerWrapper   = outerWrapper;
+        this.editorWrapper  = editorWrapper;
+        this.editorBody     = this.editor.panelBody;
+        this.previewWrapper = previewWrapper;
+        this.previewBody    = this.preview.panelBody;
+        this.element.appendChild(outerWrapper);
+    }
+    
+    function renderFresh(parent, howMany, data) {
+        console.log(parent);
+        var i,
+            nodeItem,
+            inputBoxWrapper,
+            nodeNameInput,
+            nodeValueInput,
+            collapseBtnWrapper,
+            collapseBtn,
+            attrBtnWrapper,
+            attrBtn,
+            addBtnWrapper,
+            addBtn,
+            removeBtnWrapper,
+            removeBtn;
+        
+        howMany = howMany || 1;
+        
+        for (i = 1; i <= howMany; i = i + 1) {
+            nodeItem            = document.createElement('div');
+            inputBoxWrapper     = document.createElement('div');
+            nodeNameInput       = document.createElement('input');
+            nodeValueInput      = document.createElement('input');
+            collapseBtnWrapper  = document.createElement('span');
+            collapseBtn         = document.createElement('i');
+            attrBtnWrapper      = document.createElement('span');
+            attrBtn             = document.createElement('i');
+            addBtnWrapper       = document.createElement('span');
+            addBtn              = document.createElement('i');
+            removeBtnWrapper    = document.createElement('span');
+            removeBtn           = document.createElement('i');
+            
+            nodeItem.className              = 'mkxmlbuilder-node-item';
+            inputBoxWrapper.className       = 'mkxmlbuilder-inputbox';
+            nodeNameInput.className         = 'node-item-name ' + (this.options.bootstrapStyle ? 'form-control' : '');
+            nodeValueInput.className        = 'node-item-value ' + (this.options.bootstrapStyle ? 'form-control' : '');
             collapseBtnWrapper.className    = 'node-icon';
             attrBtnWrapper.className        = 'node-icon';
             addBtnWrapper.className         = 'node-icon';
-
+            removeBtnWrapper.className      = 'node-icon';
+            
             collapseBtn.className   = this.options.collapseIconClass;
             attrBtn.className       = this.options.attrIconClass;
             addBtn.className        = this.options.addIconClass;
-
+            removeBtn.className     = this.options.removeIconClass;
+            
             collapseBtnWrapper.appendChild(collapseBtn);
             attrBtnWrapper.appendChild(attrBtn);
             addBtnWrapper.appendChild(addBtn);
-
-
+            removeBtnWrapper.appendChild(removeBtn);
+            
             inputBoxWrapper.appendChild(nodeNameInput);
             inputBoxWrapper.appendChild(nodeValueInput);
-            inputBoxWrapper.appendChild(collapseBtnWrapper);
-            inputBoxWrapper.appendChild(attrBtnWrapper);
-            inputBoxWrapper.appendChild(addBtnWrapper);
-
-
-            nodeItem.appendChild(inputBoxWrapper);
-
-            nodeItem.mkxmlAttributes = {};
-
-
-            nodeNameInput.onkeyup = (function(_this, nodeItem) {
-                return function(event) {
-                    _changeNodeNameHandler.call(_this, event, nodeItem);
-                }
-            }(this, nodeItem));
-
-            nodeNameInput.onchange = (function(_this, nodeItem) {
-                return function(event) {
-                    _changeNodeNameHandler.call(_this, event, nodeItem);
-                }
-            }(this, nodeItem));
-
-            nodeValueInput.onkeyup = (function(_this, nodeItem) {
-                return function(event) {
-                    _changeNodeValueHandler.call(_this, event, nodeItem);
-                }
-            }(this, nodeItem));
-
-            nodeValueInput.onchange = (function(_this, nodeItem) {
-                return function(event) {
-                    _changeNodeValueHandler.call(_this, event, nodeItem);
-                }
-            }(this, nodeItem));
-
-            collapseBtnWrapper.onclick = _collapseClickHandler;
-
-            attrBtnWrapper.onclick = (function(_this, nodeItem) {
-                return function(event) {
-                    _attrClickHandler.call(_this, event, nodeItem);
-                }
-            }(this, nodeItem));
-
-            addBtnWrapper.onclick = (function(_this, parent, nodeNameInput, nodeValueInput) {
-                return function(event) {
-                    _addClickHandler.call(_this, event, parent, nodeNameInput, nodeValueInput);
-                }
-            }(this, nodeItem, nodeNameInput, nodeValueInput));
-
-            if(parent !== this.editorWrapper)
-            {
-                var removeBtnWrapper    = document.createElement('span'),
-                    removeBtn           = document.createElement('i');
-                removeBtnWrapper.className      = 'node-icon';
-                removeBtn.className     = this.options.removeIconClass;
-                removeBtnWrapper.appendChild(removeBtn);
+            
+            if (this.options.showCollapseButton) {
+                inputBoxWrapper.appendChild(collapseBtnWrapper);
+            }
+            if (this.options.showAttrButton) {
+                inputBoxWrapper.appendChild(attrBtnWrapper);
+            }
+            if (this.options.showAddButton) {
+                inputBoxWrapper.appendChild(addBtnWrapper);
+            }
+            if (this.options.showRemoveNodeButton && parent !== this.editorBody) {
                 inputBoxWrapper.appendChild(removeBtnWrapper);
-                removeBtnWrapper.onclick = (function(_this, parent, nodeNameInput, nodeValueInput) {
-                    return function(event) {
-                        _removeClickHandler.call(_this, event, parent, nodeNameInput, nodeValueInput);
-                    }
+            }
+            
+            nodeNameInput.setAttribute('placeholder', this.options.nodeNamePlaceholder);
+            nodeValueInput.setAttribute('placeholder', this.options.nodeValuePlaceholder);
+            nodeItem.mkxmlAttributes = {};
+            
+            // Finally Add To Element
+            nodeItem.appendChild(inputBoxWrapper);
+            parent.appendChild(nodeItem);
+            
+            // Event Handling
+            nodeNameInput.onkeyup = (function (instance, nodeItem) {
+                return function (event) {
+                    changeNodeNameHandler.call(instance, event, nodeItem);
+                };
+            }(this, nodeItem));
+
+            nodeNameInput.onchange = (function (instance, nodeItem) {
+                return function (event) {
+                    changeNodeNameHandler.call(instance, event, nodeItem);
+                };
+            }(this, nodeItem));
+            
+            nodeValueInput.onkeyup = (function (instance, nodeItem) {
+                return function (event) {
+                    changeNodeValueHandler.call(instance, event, nodeItem);
+                };
+            }(this, nodeItem));
+
+            nodeValueInput.onchange = (function (instance, nodeItem) {
+                return function (event) {
+                    changeNodeValueHandler.call(instance, event, nodeItem);
+                };
+            }(this, nodeItem));
+
+            collapseBtnWrapper.onclick = (function (instance, nodeItem) {
+                return function (event) {
+                    collapseClickHandler.call(instance, event, nodeItem);
+                };
+            }(this, nodeItem));
+            
+            attrBtnWrapper.onclick = (function (instance, nodeItem) {
+                return function (event) {
+                    attrClickHandler.call(instance, event, nodeItem);
+                };
+            }(this, nodeItem));
+
+            addBtnWrapper.onclick = (function (instance, parent, nodeNameInput, nodeValueInput) {
+                return function (event) {
+                    addClickHandler.call(instance, event, parent, nodeNameInput, nodeValueInput);
+                };
+            }(this, nodeItem, nodeNameInput, nodeValueInput));
+            
+            if (this.options.showRemoveNodeButton && parent !== this.editorBody) {
+                removeBtnWrapper.onclick = (function (instance, parent, nodeItem) {
+                    return function (event) {
+                        removeClickHandler.call(instance, event, parent, nodeItem);
+                    };
                 }(this, parent, nodeItem));
             }
-
-            //this.xmlNodes[parent.mkxmlUniqueId] = (Array.isArray(this.xmlNodes[parent.mkxmlUniqueId])) ? this.xmlNodes[parent.mkxmlUniqueId].push(nodeItem) : [nodeItem];
-            parent.appendChild(nodeItem);
-        }
-
-    };
-
-    var _renderWithData = function(parent, data)
-    {
-
-    };
-
-  var Mkxmlbuilder = function (element, options, data) {
-
-    _classCallCheck(this, Mkxmlbuilder);
-
-    this.options = {
-        collapsable: true,
-        allowAttributes: true,
-        showRemoveConfirmation: true,
-        showRemoveButton: true,
-        collapseButtonClass: 'text-primary',
-        addButtonClass: 'text-success',
-        removeButtonClass: 'text-danger',
-        attrButtonClass: 'text-info',
-        showXmlPreview: true,
-        inputBoxWrapperClass: 'input-box',
-        nodeNameInputClass: 'form-control node-name',
-        nodeValueInputClass: 'form-control node-value',
-        collapseIconClass: 'fa fa-plus text-primary',
-        attrIconClass: 'fa fa-tag text-succss',
-        addIconClass: 'fa fa-plus-circle text-info',
-        removeIconClass: 'fa fa-trash text-danger',
-        editorTitle: 'Create Your XML',
-        previewTitle:'XML Preivew'
-    };
-      this.data = null;
-      this.xmlNodes = {};
-
-    if (arguments.length <= 0)
-    {
-        throw new TypeError('You must have to provide element in the constructor');
-    }
-    else
-    {
-        this.element = _createOuterWrapper.call(this, arguments[0]);
-
-        if(arguments.length === 2)
-        {
-            this.options = utils.extend(this.options, arguments[1]);
-        }
-        if(arguments.length === 3)
-        {
-            this.data = arguments[2];
         }
     }
+    
+    function attrClickHandler(event, nodeItem) {
+        this.attributeModal.setNode(nodeItem);
+        this.attributeModal.show();
+    }
+    
+    function collapseClickHandler(event, nodeItem) {
+        
+    }
+    
+    function addClickHandler(event, parent, nodeNameInput, nodeValueInput) {
+        var howMany     = prompt('Please enter number of nodes you want') || 0,
+            inputStyle  = window.getComputedStyle(nodeNameInput, null),
+            width       = parseInt(inputStyle.getPropertyValue('width'),10);
+        
+        if (howMany > 0) {
+            nodeNameInput.style.width       = (width*2 + (width*2 * 1/100)) + 'px';
+            nodeValueInput.style.display    = 'none';
+            renderFresh.call(this, parent, howMany);
+        }
+    }
+    
+    function removeClickHandler(event, parent, removableNode) {
+        
+        removableNode.remove();
+        
+        var nodeNameInput  = parent.querySelector('.node-item-name'),
+            nodeValueInput = parent.querySelector('.node-item-value'),
+            numberOfNodes  = parent.querySelectorAll('.mkxmlbuilder-node-item'),
+            nodeNameInputStyle,
+            width;
+        
+        if (numberOfNodes.length < 1) {
+            nodeNameInputStyle              = window.getComputedStyle(nodeNameInput, null);
+            width                           = parseInt(nodeNameInputStyle.getPropertyValue('width'),10);
+            nodeNameInput.style.width       = (width/2 - (width/2 * 1/100)) + 'px';
+            nodeValueInput.style.display    = 'inline-block';
+        }
+     }
+    
+    function changeNodeNameHandler(event, nodeItem) {
+        nodeItem.mkxmlNodeName = event.target.value;
+    }
 
-    this.init();
-  };
-
-   Mkxmlbuilder.prototype.init = function ()
-   {
-    this.editorWrapper.mkxmlUniqueId = _generateUID();
-       if(this.data !== null)
-           {
-               _renderWithData.call(this, this.editorWrapper, this.data);
-           }
-       else
-           {
-               _renderFresh.call(this, this.editorWrapper);
-           }
-
-        this.attributeModal = new attributeModal();
-   };
+    function changeNodeValueHandler(event, nodeItem) {
+        nodeItem.mkxmlNodeValue = event.target.value;
+    }
+    
+    function Mkxmlbuilder(element, options, data) {
+        
+        if (arguments.length <= 0) {
+            throw new TypeError('You must have to provide element in the constructor');
+        }
+        
+        this.options    = {
+            showAddButton           : true,
+            showCollapseButton      : true,
+            showAttrButton          : true,
+            showRemoveNodeButton    : true,
+            showRemoveConfirmation  : true,
+            showPreviewPanel        : true,
+            collapseIconClass       : 'fa fa-plus text-info',
+            attrIconClass           : 'fa fa-tag text-primary',
+            addIconClass            : 'fa fa-plus-circle text-success',
+            removeIconClass         : 'fa fa-trash text-danger',
+            nodeNamePlaceholder     : 'Node Name...',
+            nodeValuePlaceholder    : 'Node Value...',
+            bootstrapStyle          : true,
+            editor : {
+                showHeader          : true,
+                showFooter          : true,
+                showPreviewButton   : true,
+                headerTitle         : 'Editor',
+                previewButtonText   : 'Show XML Preview',
+                bsStyle             : true,
+                bsPanelColor        : 'primary',
+                bsPreviewButtonColor: 'primary'
+            },
+            preview: {
+                showHeader          : true,
+                showFooter          : true,
+                showCopyButton      : true,
+                headerTitle         : 'XML Preview',
+                copyButtonText      : 'Copy To Clipboard',
+                bsStyle             : true,
+                bsPanelColor        : 'primary',
+                bsCopyButtonColor   : 'primary'
+            },
+            attributeModal : {
+                headerTitle         : 'Set Node Attributes',
+                headerCloseIcon     : '&times;',
+                closeButtonText     : 'Close',
+                saveButtonText      : 'Save',
+                addRowIconHtml      : '<i class="fa fa-plus-circle text-primary"></i>',
+                removeRowIconHtml   : '<i class="fa fa-minus-circle text-danger"></i>',
+                bsStyle             : true,
+                bsSaveButtonColor   : 'primary',
+                bsCloseButtonColor  : 'danger'
+            }
+        };
+        this.xmlNodes       = null;
+        this.element        = resolveBootstrapElement(element);
+        this.options        = (typeof options === 'object') ? Utils.extend(this.options, options) : this.options;
+        this.data           = data || null;
+        this.editor         = new Editor(this.options.editor);
+        this.preview        = new Preview(this.options.preview);
+        this.attributeModal = new AttributeModal(this.options.attributeModal);
+        
+        prepareDomInstances.call(this);
+        
+        this.init();
+    }
+    
+    Mkxmlbuilder.prototype.init = function () {
+        
+        this.editorBody.mkxmlUniqueId = generateUID();
+        
+        if (this.data !== null) {
+            renderWithData.call(this, this.editorBody, this.data);
+        } else {
+            renderFresh.call(this, this.editorBody);
+        }
+    };
 
     Mkxmlbuilder.prototype.generateJsonOutput = function()
     {
@@ -308,8 +345,6 @@
         return this.xmlNodes;
     };
 
-
-
-  return Mkxmlbuilder;
+    return Mkxmlbuilder;
 
 }));
