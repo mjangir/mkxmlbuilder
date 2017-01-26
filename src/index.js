@@ -24,6 +24,19 @@
         }
     }
     
+    function findNodeRecursively(search, obj) {
+        var i;
+        for (i = 0; i < obj.length; i = i + 1) {
+            if (obj[i][search]) {
+                return obj[i];
+            } else {
+                if (obj[i]['subNodes'].length > 0) {
+                    return findNodeRecursively(search, obj[i]['subNodes']);
+                }
+            }
+        }
+    }
+    
     function resolveBootstrapElement(element) {
         
         if (typeof element !== 'string' && typeof element !== 'object') {
@@ -80,7 +93,6 @@
     }
     
     function renderFresh(parent, howMany, data) {
-        console.log(parent);
         var i,
             nodeItem,
             inputBoxWrapper,
@@ -93,7 +105,9 @@
             addBtnWrapper,
             addBtn,
             removeBtnWrapper,
-            removeBtn;
+            removeBtn,
+            parentNodeInHierarchy,
+            pushableHierarchyObj;
         
         howMany = howMany || 1;
         
@@ -204,6 +218,19 @@
                     };
                 }(this, parent, nodeItem));
             }
+            
+            // Add To Hierarchy
+            nodeItem.mkxmlUniqueId                          = generateUID();
+            pushableHierarchyObj                            = {subNodes: []};
+            pushableHierarchyObj[nodeItem.mkxmlUniqueId]    = nodeItem;
+            
+            parentNodeInHierarchy = findNodeRecursively(parent.mkxmlUniqueId, this.nodeHierarchy);
+            
+            if (parentNodeInHierarchy && parentNodeInHierarchy['subNodes']) {
+                parentNodeInHierarchy['subNodes'].push(pushableHierarchyObj);
+            } else {
+                this.nodeHierarchy.push(pushableHierarchyObj);
+            }
         }
     }
     
@@ -306,7 +333,7 @@
                 bsCloseButtonColor  : 'danger'
             }
         };
-        this.xmlNodes       = null;
+        this.nodeHierarchy  = [];
         this.element        = resolveBootstrapElement(element);
         this.options        = (typeof options === 'object') ? Utils.extend(this.options, options) : this.options;
         this.data           = data || null;
@@ -321,8 +348,6 @@
     
     Mkxmlbuilder.prototype.init = function () {
         
-        this.editorBody.mkxmlUniqueId = generateUID();
-        
         if (this.data !== null) {
             renderWithData.call(this, this.editorBody, this.data);
         } else {
@@ -332,7 +357,11 @@
 
     Mkxmlbuilder.prototype.generateJsonOutput = function()
     {
-
+        var hierarchy   = this.nodeHierarchy,
+            jsonOutput  = [];
+        for (i in hierarchy) {
+            
+        }
     };
 
     Mkxmlbuilder.prototype.generateXmlOutput = function()
@@ -342,7 +371,7 @@
 
     Mkxmlbuilder.prototype.getAllXmlNodes = function()
     {
-        return this.xmlNodes;
+        return this.nodeHierarchy;
     };
 
     return Mkxmlbuilder;
