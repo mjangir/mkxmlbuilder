@@ -37,6 +37,54 @@
         }
     }
     
+    function removeNodeRecursively(search, obj) {
+        var i;
+        for (i = 0; i < obj.length; i = i + 1) {
+            if (obj[i][search]) {
+                return obj.splice(i, 1);
+            } else {
+                if (obj[i]['subNodes'].length > 0) {
+                    return removeNodeRecursively(search, obj[i]['subNodes']);
+                }
+            }
+        }
+    }
+    
+    function prepareJsonOutput(insertTo, obj) {
+        var i,
+            newObj,
+            id,
+            node,
+            name,
+            value,
+            attrs,
+            subNodes;
+        
+        for (i in obj) {
+            newObj      = {};
+            id          = Object.keys(obj[i])[1];
+            node        = obj[i][id];
+            name        = (node.mkxmlNodeName) ? node.mkxmlNodeName : "Empty";
+            value       = (node.mkxmlNodeValue) ? node.mkxmlNodeValue : "";
+            attrs       = (node.mkxmlAttributes) ? node.mkxmlAttributes : [];
+            subNodes    = (obj[i]['subNodes'].length > 0);
+            
+            newObj.id           = id;
+            newObj.name         = name;
+            newObj.value        = value;
+            newObj.attributes   = attrs;
+            newObj.subNodes     = [];
+            
+            insertTo.push(newObj);
+            
+            if (subNodes) {
+                prepareJsonOutput(newObj.subNodes, obj[i]['subNodes']);
+            }
+        }
+        
+        return insertTo;
+    }
+    
     function resolveBootstrapElement(element) {
         
         if (typeof element !== 'string' && typeof element !== 'object') {
@@ -59,6 +107,25 @@
             return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
         }
         return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    }
+    
+    function handlePreviewEvents() {
+        var context             = this,
+            xmlPreviewButton    = this.editor.xmlPreviewButton,
+            jsonPreviewButton   = this.editor.jsonPreviewButton;
+        
+        xmlPreviewButton.onclick    = (function (context) {
+            return function () {
+                context.showXmlPreview();
+            };
+        }(this));
+        
+        jsonPreviewButton.onclick    = (function (context) {
+            return function () {
+                context.showJsonPreview();
+            };
+        }(this));
+        
     }
     
     function prepareDomInstances() {
@@ -259,6 +326,8 @@
         
         removableNode.remove();
         
+        removeNodeRecursively(removableNode.mkxmlUniqueId, this.nodeHierarchy);
+        
         var nodeNameInput  = parent.querySelector('.node-item-name'),
             nodeValueInput = parent.querySelector('.node-item-value'),
             numberOfNodes  = parent.querySelectorAll('.mkxmlbuilder-node-item'),
@@ -302,20 +371,23 @@
             nodeValuePlaceholder    : 'Node Value...',
             bootstrapStyle          : true,
             editor : {
-                showHeader          : true,
-                showFooter          : true,
-                showPreviewButton   : true,
-                headerTitle         : 'Editor',
-                previewButtonText   : 'Show XML Preview',
-                bsStyle             : true,
-                bsPanelColor        : 'primary',
-                bsPreviewButtonColor: 'primary'
+                showHeader              : true,
+                showFooter              : true,
+                showXmlPreviewButton    : true,
+                showJsonPreviewButton   : true,
+                headerTitle             : 'Editor',
+                xmlPreviewButtonText    : 'Show XML Preview',
+                jsonPreviewButtonText   : 'Show JSON Preview',
+                bsStyle                 : true,
+                bsPanelColor            : 'primary',
+                bsXmlPreviewButtonColor : 'primary',
+                bsJsonPreviewButtonColor: 'primary'
             },
             preview: {
                 showHeader          : true,
                 showFooter          : true,
                 showCopyButton      : true,
-                headerTitle         : 'XML Preview',
+                headerTitle         : 'Preview',
                 copyButtonText      : 'Copy To Clipboard',
                 bsStyle             : true,
                 bsPanelColor        : 'primary',
@@ -341,6 +413,8 @@
         this.preview        = new Preview(this.options.preview);
         this.attributeModal = new AttributeModal(this.options.attributeModal);
         
+        handlePreviewEvents.call(this);
+        
         prepareDomInstances.call(this);
         
         this.init();
@@ -357,17 +431,21 @@
 
     Mkxmlbuilder.prototype.generateJsonOutput = function()
     {
-        var hierarchy   = this.nodeHierarchy,
-            jsonOutput  = [];
-        for (i in hierarchy) {
-            
-        }
+        return prepareJsonOutput([], this.nodeHierarchy);
     };
 
     Mkxmlbuilder.prototype.generateXmlOutput = function()
     {
 
     };
+    
+    Mkxmlbuilder.prototype.showXmlPreview = function () {
+        this.preview.panelBodyPre.innerHTML = JSON.stringify(this.generateJsonOutput(), null, 2);
+    }
+    
+    Mkxmlbuilder.prototype.showJsonPreview = function () {
+        this.preview.panelBodyPre.innerHTML = JSON.stringify(this.generateJsonOutput(), null, 2);
+    }
 
     Mkxmlbuilder.prototype.getAllXmlNodes = function()
     {

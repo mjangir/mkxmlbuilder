@@ -15,20 +15,22 @@ var Utils = require('./utils');
             panelHeader,
             headerTitle,
             panelBody,
+            panelBodyPre,
             panelFooter,
             copyButton;
         
         panelWrapper    = document.createElement('div');
         panelHeader     = document.createElement('div');
         panelBody       = document.createElement('div');
+        panelBodyPre    = document.createElement('pre');
         panelFooter     = document.createElement('div');
         headerTitle     = document.createElement('span');
         copyButton      = document.createElement('button');
         
-        panelWrapper.className      = (this.options.bsStyle ? 'panel panel-' + this.options.bsPanelColor : '') + ' mkxmlbuilder-editor-panel';
-        panelHeader.className       = (this.options.bsStyle ? 'panel-heading' : '') + ' mkxmlbuilder-editor-panel-header';
-        panelBody.className         = (this.options.bsStyle ? 'panel-body' : '') + ' mkxmlbuilder-editor-panel-body';
-        panelFooter.className       = (this.options.bsStyle ? 'panel-footer' : '') + ' mkxmlbuilder-editor-panel-footer';
+        panelWrapper.className      = (this.options.bsStyle ? 'panel panel-' + this.options.bsPanelColor : '') + ' mkxmlbuilder-preview-panel';
+        panelHeader.className       = (this.options.bsStyle ? 'panel-heading' : '') + ' mkxmlbuilder-preview-panel-header';
+        panelBody.className         = (this.options.bsStyle ? 'panel-body' : '') + ' mkxmlbuilder-preview-panel-body';
+        panelFooter.className       = (this.options.bsStyle ? 'panel-footer' : '') + ' mkxmlbuilder-preview-panel-footer';
         copyButton.className     = (this.options.bsStyle ? 'btn btn-' + this.options.bsCopyButtonColor : '') + ' mkxmlbuilder-editor-preview-btn';
         
         panelHeader.appendChild(headerTitle);
@@ -36,6 +38,7 @@ var Utils = require('./utils');
         this.panelWrapper   = panelWrapper;
         this.panelHeader    = panelHeader;
         this.panelBody      = panelBody;
+        this.panelBodyPre   = panelBodyPre;
         this.panelFooter    = panelFooter;
         this.headerTitle    = headerTitle;
         this.copyButton     = copyButton;
@@ -43,7 +46,7 @@ var Utils = require('./utils');
         if (this.options.showHeader) {
             this.panelWrapper.appendChild(this.panelHeader);
         }
-        
+        this.panelBody.appendChild(panelBodyPre);
         this.panelWrapper.appendChild(this.panelBody);
         
         if (this.options.showFooter) {

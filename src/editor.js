@@ -16,29 +16,33 @@ var Utils = require('./utils');
             headerTitle,
             panelBody,
             panelFooter,
-            previewButton;
+            xmlPreviewButton,
+            jsonPreviewButton;
         
-        panelWrapper    = document.createElement('div');
-        panelHeader     = document.createElement('div');
-        panelBody       = document.createElement('div');
-        panelFooter     = document.createElement('div');
-        headerTitle     = document.createElement('span');
-        previewButton   = document.createElement('button');
+        panelWrapper        = document.createElement('div');
+        panelHeader         = document.createElement('div');
+        panelBody           = document.createElement('div');
+        panelFooter         = document.createElement('div');
+        headerTitle         = document.createElement('span');
+        xmlPreviewButton    = document.createElement('button');
+        jsonPreviewButton   = document.createElement('button');
         
-        panelWrapper.className      = (this.options.bsStyle ? 'panel panel-' + this.options.bsPanelColor : '') + ' mkxmlbuilder-editor-panel';
-        panelHeader.className       = (this.options.bsStyle ? 'panel-heading' : '') + ' mkxmlbuilder-editor-panel-header';
-        panelBody.className         = (this.options.bsStyle ? 'panel-body' : '') + ' mkxmlbuilder-editor-panel-body';
-        panelFooter.className       = (this.options.bsStyle ? 'panel-footer' : '') + ' mkxmlbuilder-editor-panel-footer';
-        previewButton.className     = (this.options.bsStyle ? 'btn btn-' + this.options.bsPreviewButtonColor : '') + ' mkxmlbuilder-editor-preview-btn';
+        panelWrapper.className          = (this.options.bsStyle ? 'panel panel-' + this.options.bsPanelColor : '') + ' mkxmlbuilder-editor-panel';
+        panelHeader.className           = (this.options.bsStyle ? 'panel-heading' : '') + ' mkxmlbuilder-editor-panel-header';
+        panelBody.className             = (this.options.bsStyle ? 'panel-body' : '') + ' mkxmlbuilder-editor-panel-body';
+        panelFooter.className           = (this.options.bsStyle ? 'panel-footer' : '') + ' mkxmlbuilder-editor-panel-footer';
+        xmlPreviewButton.className      = (this.options.bsStyle ? 'btn btn-' + this.options.bsXmlPreviewButtonColor : '') + ' mkxmlbuilder-editor-xml-preview-btn';
+        jsonPreviewButton.className     = (this.options.bsStyle ? 'btn btn-' + this.options.bsJsonPreviewButtonColor : '') + ' mkxmlbuilder-editor-json-preview-btn';
         
         panelHeader.appendChild(headerTitle);
         
-        this.panelWrapper   = panelWrapper;
-        this.panelHeader    = panelHeader;
-        this.panelBody      = panelBody;
-        this.panelFooter    = panelFooter;
-        this.headerTitle    = headerTitle;
-        this.previewButton  = previewButton;
+        this.panelWrapper       = panelWrapper;
+        this.panelHeader        = panelHeader;
+        this.panelBody          = panelBody;
+        this.panelFooter        = panelFooter;
+        this.headerTitle        = headerTitle;
+        this.xmlPreviewButton   = xmlPreviewButton;
+        this.jsonPreviewButton  = jsonPreviewButton;
         
         if (this.options.showHeader) {
             this.panelWrapper.appendChild(this.panelHeader);
@@ -50,12 +54,18 @@ var Utils = require('./utils');
             this.panelWrapper.appendChild(this.panelFooter);
         }
         
-        if (this.options.showPreviewButton) {
-            this.panelFooter.appendChild(this.previewButton);
+        if (this.options.showXmlPreviewButton) {
+            this.panelFooter.appendChild(this.xmlPreviewButton);
         }
         
-        headerTitle.innerHTML   = this.options.headerTitle;
-        previewButton.innerHTML = this.options.previewButtonText;
+        if (this.options.showJsonPreviewButton) {
+            this.jsonPreviewButton.style.marginLeft = '10px';
+            this.panelFooter.appendChild(this.jsonPreviewButton);
+        }
+        
+        headerTitle.innerHTML       = this.options.headerTitle;
+        xmlPreviewButton.innerHTML  = this.options.xmlPreviewButtonText;
+        jsonPreviewButton.innerHTML = this.options.jsonPreviewButtonText;
         
         return this;
     }
