@@ -48,6 +48,7 @@
   },
   "homepage": "https://github.com/krasimir/webpack-library-starter",
   "dependencies": {
-    "extract-text-webpack-plugin": "^1.0.1"
+    "extract-text-webpack-plugin": "^1.0.1",
+    "pretty-data": "^0.40.0"
   }
 }

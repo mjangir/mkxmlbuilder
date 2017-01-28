@@ -5,6 +5,7 @@
     if (typeof exports === 'object' && typeof module !== 'undefined') {
         module.exports = factory(
             require('./utils'),
+            require('pretty-data').pd,
             require('./editor'),
             require('./preview'),
             require('./attributemodal'),
@@ -14,7 +15,7 @@
     } else {
         root.Mkxmlbuilder = factory(utils, attributeModal, previewObj, root.jQuery, root.bootstrap, root.toastr, root.alert, root);
     }
-}(typeof window !== 'undefined' ? window : this, function (Utils, Editor, Preview, AttributeModal, Style, root) {
+}(typeof window !== 'undefined' ? window : this, function (Utils, PD, Editor, Preview, AttributeModal, Style, root) {
     
     'use strict';
     
@@ -48,6 +49,36 @@
                 }
             }
         }
+    }
+    
+    function prepareXmlOutput(appendTo, obj) {
+        var i, k, attributeString = '';
+        
+        for (i in obj) {
+            if (obj[i].attributes.length > 0) {
+                for (k in obj[i].attributes) {
+                    attributeString += ' ' +((obj[i].attributes[k].name != '') ? obj[i].attributes[k].name+'="'+obj[i].attributes[k].value+'"' : '') + ' ';
+                }
+                attributeString = attributeString.replace(/((\s*\S+)*)\s*/, "$1");
+            }
+            if (obj[i].subNodes.length < 1) {
+                if (obj[i].value == '') {
+                    appendTo += '<' + obj[i].name + attributeString+ '/>';
+                } else {
+                    appendTo += '<' + obj[i].name + attributeString + '>' +obj[i].value+ '</' + obj[i].name + '>';
+                }
+                
+            } else {
+                appendTo += '<' + obj[i].name + attributeString + '>';
+                
+                appendTo += prepareXmlOutput('', obj[i].subNodes);
+                
+                appendTo += '</' + obj[i].name + '>';
+            }
+            
+            attributeString = '';
+        }
+        return appendTo;
     }
     
     function prepareJsonOutput(insertTo, obj) {
@@ -196,10 +227,10 @@
             inputBoxWrapper.className       = 'mkxmlbuilder-inputbox';
             nodeNameInput.className         = 'node-item-name ' + (this.options.bootstrapStyle ? 'form-control' : '');
             nodeValueInput.className        = 'node-item-value ' + (this.options.bootstrapStyle ? 'form-control' : '');
-            collapseBtnWrapper.className    = 'node-icon';
-            attrBtnWrapper.className        = 'node-icon';
-            addBtnWrapper.className         = 'node-icon';
-            removeBtnWrapper.className      = 'node-icon';
+            collapseBtnWrapper.className    = 'node-icon collapse-btn';
+            attrBtnWrapper.className        = 'node-icon attr-btn';
+            addBtnWrapper.className         = 'node-icon add-btn';
+            removeBtnWrapper.className      = 'node-icon remove-btn';
             
             collapseBtn.className   = this.options.collapseIconClass;
             attrBtn.className       = this.options.attrIconClass;
@@ -210,6 +241,8 @@
             attrBtnWrapper.appendChild(attrBtn);
             addBtnWrapper.appendChild(addBtn);
             removeBtnWrapper.appendChild(removeBtn);
+            
+            collapseBtnWrapper.style.display = 'none';
             
             inputBoxWrapper.appendChild(nodeNameInput);
             inputBoxWrapper.appendChild(nodeValueInput);
@@ -306,7 +339,46 @@
         this.attributeModal.show();
     }
     
+    function determineCollapseBtn(nodeItem) {
+        var numberOfNodes   = nodeItem.querySelectorAll('.mkxmlbuilder-node-item'),
+            collapseBtn     = nodeItem.querySelector('.collapse-btn');
+        
+        collapseBtn.style.display = (numberOfNodes.length > 0) ? 'inline-block' : 'none'; 
+    }
+    
+    function toggleCollapseBtn(icon, addClass, removeClass) {
+        addClass    = (addClass.indexOf(' ') > -1) ? addClass.split(' ') : [addClass];
+        removeClass = (removeClass.indexOf(' ') > -1) ? removeClass.split(' ') : [removeClass];
+        
+        console.log(addClass, removeClass);
+        
+        for (var i in removeClass) {
+            icon.classList.remove(removeClass[i]);
+        }
+        
+        for (var i in addClass) {
+            icon.classList.add(addClass[i]);
+        }
+    }
+    
     function collapseClickHandler(event, nodeItem) {
+        var innerItems      = nodeItem.querySelectorAll('.mkxmlbuilder-node-item'),
+            icon            = nodeItem.querySelector('.node-icon.collapse-btn > i'),
+            minusClass      = this.options.collapseIconClass,
+            plusClass       = this.options.collapseIconToggleClass;
+        
+        if (innerItems.length > 0) {
+            for ( var i = 0; i < innerItems.length; i++) {
+                if (innerItems[i].style.display === 'none') {
+                    innerItems[i].style.display = 'block';
+                    toggleCollapseBtn(icon, minusClass, plusClass);
+                } else {
+                    innerItems[i].style.display = 'none';
+                    toggleCollapseBtn(icon, plusClass, minusClass);
+                }
+            }
+        }
+        
         
     }
     
@@ -316,10 +388,15 @@
             width       = parseInt(inputStyle.getPropertyValue('width'),10);
         
         if (howMany > 0) {
-            nodeNameInput.style.width       = (width*2 + (width*2 * 1/100)) + 'px';
-            nodeValueInput.style.display    = 'none';
+            
+            if(nodeValueInput.style.display != 'none') {
+                nodeNameInput.style.width       = (width*2 + (width*2 * 1/100)) + 'px';
+                nodeValueInput.style.display    = 'none';
+            }
             renderFresh.call(this, parent, howMany);
         }
+        
+        determineCollapseBtn(parent);
     }
     
     function removeClickHandler(event, parent, removableNode) {
@@ -340,6 +417,8 @@
             nodeNameInput.style.width       = (width/2 - (width/2 * 1/100)) + 'px';
             nodeValueInput.style.display    = 'inline-block';
         }
+        
+        determineCollapseBtn(parent);
      }
     
     function changeNodeNameHandler(event, nodeItem) {
@@ -363,7 +442,8 @@
             showRemoveNodeButton    : true,
             showRemoveConfirmation  : true,
             showPreviewPanel        : true,
-            collapseIconClass       : 'fa fa-plus text-info',
+            collapseIconClass       : 'fa fa-minus text-info',
+            collapseIconToggleClass : 'fa fa-plus text-info',
             attrIconClass           : 'fa fa-tag text-primary',
             addIconClass            : 'fa fa-plus-circle text-success',
             removeIconClass         : 'fa fa-trash text-danger',
@@ -436,11 +516,11 @@
 
     Mkxmlbuilder.prototype.generateXmlOutput = function()
     {
-
+        return prepareXmlOutput('', this.generateJsonOutput());
     };
     
     Mkxmlbuilder.prototype.showXmlPreview = function () {
-        this.preview.panelBodyPre.innerHTML = JSON.stringify(this.generateJsonOutput(), null, 2);
+        this.preview.panelBodyPre.innerHTML = Utils.escapeHtmlEntities(PD.xml(this.generateXmlOutput()));
     }
     
     Mkxmlbuilder.prototype.showJsonPreview = function () {
