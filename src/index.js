@@ -32,7 +32,10 @@
                 return obj[i];
             } else {
                 if (obj[i]['subNodes'].length > 0) {
-                    return findNodeRecursively(search, obj[i]['subNodes']);
+                    var result = findNodeRecursively(search, obj[i]['subNodes']);
+                    if(result) {
+                        return result;
+                    }
                 }
             }
         }
@@ -42,7 +45,7 @@
         var i;
         for (i = 0; i < obj.length; i = i + 1) {
             if (obj[i][search]) {
-                return obj.splice(i, 1);
+                return obj[i].splice(i, 1);
             } else {
                 if (obj[i]['subNodes'].length > 0) {
                     return removeNodeRecursively(search, obj[i]['subNodes']);
