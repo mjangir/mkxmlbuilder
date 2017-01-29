@@ -2,6 +2,8 @@
 
 MKXMLBUILDER is a small javascript library to quickly embed a XML builder UI in your existing form. It lets you to define your XML templates and provides the JSON object to save it into database.
 
+* **[SEE THE DEMO](https://mjangir.github.io/mkxmlbuilder)**
+
 ## Getting Started
 
 Getting started with the library is extremely easy. You just need to create an empty div and pass it to the constructor's first argument.
