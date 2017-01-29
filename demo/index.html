@@ -13,8 +13,56 @@
 
 <script type="text/javascript" src="../lib/mkxmlbuilder.js"></script>
 <script type="text/javascript">
-var mkxmlBuilder = new Mkxmlbuilder('#main-div', {
-    showXmlPreview: false
+var mkxmlBuilder = new Mkxmlbuilder(document.getElementById('main-div'), {
+    showAddButton           : true,
+    showCollapseButton      : true,
+    showAttrButton          : true,
+    showRemoveNodeButton    : true,
+    showRemoveConfirmation  : false,
+    showPreviewPanel        : true,
+    collapseIconClass       : 'fa fa-minus text-info',
+    collapseIconToggleClass : 'fa fa-plus text-info',
+    attrIconClass           : 'fa fa-tag text-primary',
+    addIconClass            : 'fa fa-plus-circle text-success',
+    removeIconClass         : 'fa fa-trash text-danger',
+    nodeNamePlaceholder     : 'Node Name...',
+    nodeValuePlaceholder    : 'Node Value...',
+    bootstrapStyle          : true,
+    editor : {
+        showHeader              : true,
+        showFooter              : true,
+        showXmlPreviewButton    : true,
+        showJsonPreviewButton   : true,
+        headerTitle             : 'Editor',
+        xmlPreviewButtonText    : 'Show XML Preview',
+        jsonPreviewButtonText   : 'Show JSON Preview',
+        bsStyle                 : true,
+        bsPanelColor            : 'primary',
+        bsXmlPreviewButtonColor : 'primary',
+        bsJsonPreviewButtonColor: 'primary'
+    },
+    preview: {
+        showHeader          : true,
+        showFooter          : true,
+        showCopyButton      : true,
+        headerTitle         : 'Preview',
+        copyButtonText      : 'Copy To Clipboard',
+        bsStyle             : true,
+        bsPanelColor        : 'primary',
+        bsCopyButtonColor   : 'primary'
+    },
+    attributeModal : {
+        headerTitle         : 'Set Node Attributes',
+        headerCloseIcon     : '&times;',
+        closeButtonText     : 'Close',
+        saveButtonText      : 'Save',
+        addRowIconHtml      : '<i class="fa fa-plus-circle text-primary"></i>',
+        removeRowIconHtml   : '<i class="fa fa-minus-circle text-danger"></i>',
+        bsStyle             : true,
+        bsSaveButtonColor   : 'primary',
+        bsCloseButtonColor  : 'danger',
+        maxAttributes       : 5
+    }
 });
 </script>
 </body>

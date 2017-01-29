@@ -126,9 +126,9 @@
         }
         
         if (typeof element === 'string') {
-            element = document.querySelector(element);
-        } else if (element instanceof jQuery) {
-            element = element.get(0);
+            return document.querySelector(element);
+        } else if (element instanceof HTMLElement) {
+            return element;
         } else {
             throw new Error('Element must be a valid selector, jQuery object or HTMLDom Node');
         }
@@ -404,24 +404,27 @@
     
     function removeClickHandler(event, parent, removableNode) {
         
-        removableNode.remove();
+        if ((this.options.showRemoveConfirmation === true && confirm('Are you sure, you want to remove this node completely?')) || this.options.showRemoveConfirmation !== true) {
+            
+            removableNode.remove();
         
-        removeNodeRecursively(removableNode.mkxmlUniqueId, this.nodeHierarchy);
-        
-        var nodeNameInput  = parent.querySelector('.node-item-name'),
-            nodeValueInput = parent.querySelector('.node-item-value'),
-            numberOfNodes  = parent.querySelectorAll('.mkxmlbuilder-node-item'),
-            nodeNameInputStyle,
-            width;
-        
-        if (numberOfNodes.length < 1) {
-            nodeNameInputStyle              = window.getComputedStyle(nodeNameInput, null);
-            width                           = parseInt(nodeNameInputStyle.getPropertyValue('width'),10);
-            nodeNameInput.style.width       = (width/2 - (width/2 * 1/100)) + 'px';
-            nodeValueInput.style.display    = 'inline-block';
+            removeNodeRecursively(removableNode.mkxmlUniqueId, this.nodeHierarchy);
+
+            var nodeNameInput  = parent.querySelector('.node-item-name'),
+                nodeValueInput = parent.querySelector('.node-item-value'),
+                numberOfNodes  = parent.querySelectorAll('.mkxmlbuilder-node-item'),
+                nodeNameInputStyle,
+                width;
+
+            if (numberOfNodes.length < 1) {
+                nodeNameInputStyle              = window.getComputedStyle(nodeNameInput, null);
+                width                           = parseInt(nodeNameInputStyle.getPropertyValue('width'),10);
+                nodeNameInput.style.width       = (width/2 - (width/2 * 1/100)) + 'px';
+                nodeValueInput.style.display    = 'inline-block';
+            }
+
+            determineCollapseBtn(parent);
         }
-        
-        determineCollapseBtn(parent);
      }
     
     function changeNodeNameHandler(event, nodeItem) {
@@ -485,7 +488,8 @@
                 removeRowIconHtml   : '<i class="fa fa-minus-circle text-danger"></i>',
                 bsStyle             : true,
                 bsSaveButtonColor   : 'primary',
-                bsCloseButtonColor  : 'danger'
+                bsCloseButtonColor  : 'danger',
+                maxAttributes       : 10
             }
         };
         this.nodeHierarchy  = [];

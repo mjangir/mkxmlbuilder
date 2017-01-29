@@ -119,6 +119,12 @@ var Utils = require('./utils');
     };
 
     AttributeModal.prototype.setModalAttributes = function (attributes) {
+        
+        if (this.options.maxAttributes && this.modalWrapper.querySelectorAll('.attr-row').length >= this.options.maxAttributes) {
+            alert("You cannot add more than " + this.options.maxAttributes + "attributes");
+            return false;
+        }
+        
         var context = this,
             row,
             attrName,
