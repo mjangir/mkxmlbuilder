@@ -12,10 +12,6 @@ Getting started with the library is extremely easy. You just need to create an e
 
 If you have bootstrap css integrated into your project, then you don't have to do anything except creating the instance. Otherwise the plugin puts certain classes on each HTML element it creates and you can override those classes as your own.
 
-```
-Give examples
-```
-
 ### Usage
 
 Create an empty div element you want to attach the plugin to and pass it to the constructor.
